@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from database import get_session
@@ -15,6 +16,7 @@ from services.meal_plan_service import (
     get_meal_plan,
     get_meal_plan_calendar,
     get_meal_plans,
+    get_or_create_meal_plan,
 )
 
 router = APIRouter()
@@ -50,5 +52,13 @@ def get_plan_calendar(meal_plan_id: int, session: Session = Depends(get_session)
 
 
 @router.get("/", response_model=list[MealPlanRead])
-def list_plans(session: Session = Depends(get_session)) -> list[MealPlanRead]:
+def list_plans(
+    week_start: str | None = None,
+    session: Session = Depends(get_session)
+):
+    """List meal plans or get calendar by week start date."""
+    if week_start:
+        meal_plan = get_or_create_meal_plan(session, week_start)
+        calendar = get_meal_plan_calendar(session, meal_plan.id)
+        return JSONResponse(content=calendar)
     return get_meal_plans(session)

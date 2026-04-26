@@ -94,6 +94,20 @@ def get_meal_plan(session: Session, meal_plan_id: int) -> MealPlan | None:
     return session.get(MealPlan, meal_plan_id)
 
 
+def get_or_create_meal_plan(session: Session, week_start: str) -> MealPlan:
+    """Get or create a meal plan for the given week start date."""
+    from datetime import datetime
+    week_start_date = datetime.strptime(week_start, "%Y-%m-%d").date()
+    
+    plan = session.query(MealPlan).filter(MealPlan.week_start_date == week_start_date).first()
+    if not plan:
+        plan = MealPlan(week_start_date=week_start_date)
+        session.add(plan)
+        session.commit()
+        session.refresh(plan)
+    return plan
+
+
 def _get_meal_plan_with_entries(
     session: Session, meal_plan_id: int, load_ingredients: bool = False
 ) -> MealPlan | None:
@@ -133,7 +147,7 @@ def get_meal_plan_calendar(session: Session, meal_plan_id: int) -> dict | None:
     schedule = [rows[key] for key in sorted(rows)]
     return {
         "meal_plan_id": meal_plan_id,
-        "week_start_date": plan.week_start_date,
+        "week_start_date": plan.week_start_date.isoformat(),
         "schedule": schedule,
     }
 

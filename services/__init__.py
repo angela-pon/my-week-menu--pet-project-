@@ -5,6 +5,7 @@ from .meal_plan_service import (
     get_meal_plan,
     get_meal_plan_calendar,
     get_meal_plans,
+    get_or_create_meal_plan,
 )
 from .recipe_service import (
     create_recipe,
